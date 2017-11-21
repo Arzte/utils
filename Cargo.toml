@@ -1,0 +1,23 @@
+[package]
+authors = ["alex <acdenissk69@gmail.com>", "Zeyla Hellyer <zey@zey.moe>"]
+description = "Serenity ecosystem utilities, for the Discord API."
+documentation = "https://docs.rs/serenity-utils"
+homepage = "https://github.com/serenity-rs/utils"
+keywords = ["discord", "serenity"]
+license = "ISC"
+name = "serenity-utils"
+readme = "README.md"
+repository = "https://github.com/serenity-rs/utils.git"
+version = "0.1.0"
+
+[dependencies]
+base64 = "^0.7"
+
+[dependencies.serde]
+features = ["derive"]
+optional = true
+version = "^1.0"
+
+[dependencies.serenity-common]
+features = ["serde_json"]
+git = "https://github.com/serenity-rs/common.git"

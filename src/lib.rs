@@ -1,19 +1,20 @@
 //! A set of utilities to help with common use cases that are not required to
 //! fully use the library.
 
+extern crate base64;
+extern crate serenity_common;
+
 mod colour;
-mod message_builder;
+mod error;
 
 pub use self::colour::Colour;
-pub use self::message_builder::{Content, ContentModifier, MessageBuilder};
+pub use self::error::{Error, Result};
 
 // Note: Here for BC purposes.
 #[cfg(feature = "builder")]
 pub use super::builder;
 
-use base64;
-use internal::prelude::*;
-use model::{EmojiId, EmojiIdentifier};
+use serenity_common::prelude::*;
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fs::File;
@@ -52,34 +53,34 @@ pub fn hashmap_to_json_map<T>(map: HashMap<T, Value>) -> Map<String, Value>
 /// Check that a channel named `"nsfw"` is in fact NSFW:
 ///
 /// ```rust
-/// use serenity::utils;
+/// use serenity_utils;
 ///
-/// assert!(utils::is_nsfw("nsfw"));
+/// assert!(serenity_utils::is_nsfw("nsfw"));
 /// ```
 ///
 /// Check that a channel named `"cats"` is _not_ NSFW:
 ///
 /// ```rust
-/// use serenity::utils;
+/// use serenity_utils;
 ///
-/// assert!(!utils::is_nsfw("cats"));
+/// assert!(!serenity_utils::is_nsfw("cats"));
 /// ```
 ///
 /// Check that a channel named `"nsfw-stuff"` _is_ NSFW:
 ///
 /// ```rust
-/// use serenity::utils;
+/// use serenity_utils;
 ///
-/// assert!(utils::is_nsfw("nsfw-stuff"));
+/// assert!(serenity_utils::is_nsfw("nsfw-stuff"));
 /// ```
 ///
 /// Channels prefixed with `"nsfw"` but not the hyphen (`'-'`) are _not_
 /// considered NSFW:
 ///
 /// ```rust
-/// use serenity::utils;
+/// use serenity_utils;
 ///
-/// assert!(!utils::is_nsfw("nsfwstuff"));
+/// assert!(!serenity_utils::is_nsfw("nsfwstuff"));
 /// ```
 pub fn is_nsfw(name: &str) -> bool {
     if name.len() == 4 {
@@ -100,31 +101,31 @@ pub fn is_nsfw(name: &str) -> bool {
 /// 1. Retrieving the code from the URL `"https://discord.gg/0cDvIgU2voY8RSYL"`:
 ///
 /// ```rust
-/// use serenity::utils;
+/// use serenity_utils;
 ///
 /// let url = "https://discord.gg/0cDvIgU2voY8RSYL";
 ///
-/// assert_eq!(utils::parse_invite(url), "0cDvIgU2voY8RSYL");
+/// assert_eq!(serenity_utils::parse_invite(url), "0cDvIgU2voY8RSYL");
 /// ```
 ///
 /// 2. Retrieving the code from the URL `"http://discord.gg/0cDvIgU2voY8RSYL"`:
 ///
 /// ```rust
-/// use serenity::utils;
+/// use serenity_utils;
 ///
 /// let url = "http://discord.gg/0cDvIgU2voY8RSYL";
 ///
-/// assert_eq!(utils::parse_invite(url), "0cDvIgU2voY8RSYL");
+/// assert_eq!(serenity_utils::parse_invite(url), "0cDvIgU2voY8RSYL");
 /// ```
 ///
 /// 3. Retrieving the code from the URL `"discord.gg/0cDvIgU2voY8RSYL"`:
 ///
 /// ```rust
-/// use serenity::utils;
+/// use serenity_utils;
 ///
 /// let url = "discord.gg/0cDvIgU2voY8RSYL";
 ///
-/// assert_eq!(utils::parse_invite(url), "0cDvIgU2voY8RSYL");
+/// assert_eq!(serenity_utils::parse_invite(url), "0cDvIgU2voY8RSYL");
 /// ```
 ///
 /// [`RichInvite`]: ../model/struct.RichInvite.html
@@ -149,7 +150,7 @@ pub fn parse_invite(code: &str) -> &str {
 /// Retrieving an Id from a valid [`User`] mention:
 ///
 /// ```rust
-/// use serenity::utils::parse_username;
+/// use serenity_utils::parse_username;
 ///
 /// // regular username mention
 /// assert_eq!(parse_username("<@114941315417899012>"), Some(114941315417899012));
@@ -161,7 +162,7 @@ pub fn parse_invite(code: &str) -> &str {
 /// Asserting that an invalid username or nickname mention returns `None`:
 ///
 /// ```rust
-/// use serenity::utils::parse_username;
+/// use serenity_utils::parse_username;
 ///
 /// assert!(parse_username("<@1149413154aa17899012").is_none());
 /// assert!(parse_username("<@!11494131541789a90b1c2").is_none());
@@ -193,7 +194,7 @@ pub fn parse_username(mention: &str) -> Option<u64> {
 /// Retrieving an Id from a valid [`Role`] mention:
 ///
 /// ```rust
-/// use serenity::utils::parse_role;
+/// use serenity_utils::parse_role;
 ///
 /// assert_eq!(parse_role("<@&136107769680887808>"), Some(136107769680887808));
 /// ```
@@ -201,7 +202,7 @@ pub fn parse_username(mention: &str) -> Option<u64> {
 /// Asserting that an invalid role mention returns `None`:
 ///
 /// ```rust
-/// use serenity::utils::parse_role;
+/// use serenity_utils::parse_role;
 ///
 /// assert!(parse_role("<@&136107769680887808").is_none());
 /// ```
@@ -229,7 +230,7 @@ pub fn parse_role(mention: &str) -> Option<u64> {
 /// Retrieving an Id from a valid [`Channel`] mention:
 ///
 /// ```rust
-/// use serenity::utils::parse_channel;
+/// use serenity_utils::parse_channel;
 ///
 /// assert_eq!(parse_channel("<#81384788765712384>"), Some(81384788765712384));
 /// ```
@@ -237,7 +238,7 @@ pub fn parse_role(mention: &str) -> Option<u64> {
 /// Asserting that an invalid channel mention returns `None`:
 ///
 /// ```rust
-/// use serenity::utils::parse_channel;
+/// use serenity_utils::parse_channel;
 ///
 /// assert!(parse_channel("<#!81384788765712384>").is_none());
 /// assert!(parse_channel("<#81384788765712384").is_none());
@@ -257,8 +258,7 @@ pub fn parse_channel(mention: &str) -> Option<u64> {
     }
 }
 
-/// Retreives the name and Id from an emoji mention, in the form of an
-/// `EmojiIdentifier`.
+/// Retreives the name and Id from an emoji mention.
 ///
 /// If the emoji usage is invalid, then `None` is returned.
 ///
@@ -267,27 +267,23 @@ pub fn parse_channel(mention: &str) -> Option<u64> {
 /// Ensure that a valid [`Emoji`] usage is correctly parsed:
 ///
 /// ```rust
-/// use serenity::model::{EmojiId, EmojiIdentifier};
-/// use serenity::utils::parse_emoji;
+/// use serenity_utils::parse_emoji;
 ///
-/// let expected = EmojiIdentifier {
-///     id: EmojiId(302516740095606785),
-///     name: "smugAnimeFace".to_string(),
-/// };
+/// let expected = Some(("smugAnimeFace".to_string(), 302516740095606785u64));
 ///
-/// assert_eq!(parse_emoji("<:smugAnimeFace:302516740095606785>").unwrap(), expected);
+/// assert_eq!(parse_emoji("<:smugAnimeFace:302516740095606785>"), expected);
 /// ```
 ///
 /// Asserting that an invalid emoji usage returns `None`:
 ///
 /// ```rust
-/// use serenity::utils::parse_emoji;
+/// use serenity_utils::parse_emoji;
 ///
 /// assert!(parse_emoji("<:smugAnimeFace:302516740095606785").is_none());
 /// ```
 ///
 /// [`Emoji`]: ../model/struct.Emoji.html
-pub fn parse_emoji(mention: &str) -> Option<EmojiIdentifier> {
+pub fn parse_emoji(mention: &str) -> Option<(String, u64)> {
     let len = mention.len();
 
     if len < 6 || len > 56 {
@@ -317,10 +313,7 @@ pub fn parse_emoji(mention: &str) -> Option<EmojiIdentifier> {
         }
 
         match id.parse::<u64>() {
-            Ok(x) => Some(EmojiIdentifier {
-                name: name,
-                id: EmojiId(x),
-            }),
+            Ok(x) => Some((name, x)),
             _ => None,
         }
     } else {
@@ -337,9 +330,8 @@ pub fn parse_emoji(mention: &str) -> Option<EmojiIdentifier> {
 /// Reads an image located at `./cat.png` into a base64-encoded string:
 ///
 /// ```rust,no_run
-/// use serenity::utils;
-///
-/// let image = utils::read_image("./cat.png").expect("Failed to read image");
+/// let image = serenity_utils::read_image("./cat.png")
+///     .expect("Failed to read image");
 /// ```
 ///
 /// [`EditProfile::avatar`]: ../builder/struct.EditProfile.html#method.avatar
@@ -368,7 +360,7 @@ pub fn read_image<P: AsRef<Path>>(path: P) -> Result<String> {
 /// Parsing two quoted commands:
 ///
 /// ```rust
-/// use serenity::utils::parse_quotes;
+/// use serenity_utils::parse_quotes;
 ///
 /// let command = r#""this is the first" "this is the second""#;
 /// let expected = vec![
@@ -380,7 +372,7 @@ pub fn read_image<P: AsRef<Path>>(path: P) -> Result<String> {
 /// ```
 ///
 /// ```rust
-/// use serenity::utils::parse_quotes;
+/// use serenity_utils::parse_quotes;
 ///
 /// let command = r#""this is a quoted command that doesn't have an ending quotation"#;
 /// let expected = vec![
@@ -444,9 +436,9 @@ pub fn parse_quotes(s: &str) -> Vec<String> {
 /// 17 shards:
 ///
 /// ```rust
-/// use serenity::utils;
+/// use serenity_utils;
 ///
-/// assert_eq!(utils::shard_id(81384788765712384, 17), 7);
+/// assert_eq!(serenity_utils::shard_id(81384788765712384, 17), 7);
 /// ```
 #[inline]
 pub fn shard_id(guild_id: u64, shard_count: u64) -> u64 { (guild_id >> 22) % shard_count }
@@ -460,10 +452,10 @@ pub fn shard_id(guild_id: u64, shard_count: u64) -> u64 { (guild_id >> 22) % sha
 /// Return the bot's id
 ///
 /// ```rust,ignore
-/// use serenity::utils;
+/// use serenity_utils;
 ///
 /// // assuming that the id is `1234`:
-/// assert_eq!(1234, utils::with_cache(|cache| cache.user.id));
+/// assert_eq!(1234, serenity_utils::with_cache(|cache| cache.user.id));
 /// ```
 #[cfg(feature = "cache")]
 pub fn with_cache<T, F>(f: F) -> T
@@ -479,10 +471,10 @@ pub fn with_cache<T, F>(f: F) -> T
 /// Return the bot's id, and changes the shard count
 ///
 /// ```rust,ignore
-/// use serenity::utils;
+/// use serenity_utils;
 ///
 /// // assuming that the id is `1234`:
-/// assert_eq!(1234, utils::with_cache_mut(|cache| { cache.shard_count = 8; cache.user.id }));
+/// assert_eq!(1234, serenity_utils::with_cache_mut(|cache| { cache.shard_count = 8; cache.user.id }));
 /// ```
 ///
 /// [`with_cache`]: #fn.with_cache

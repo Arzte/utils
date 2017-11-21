@@ -15,8 +15,11 @@ macro_rules! colour {
 }
 
 /// A utility struct to help with working with the basic representation of a
-/// colour. This is particularly useful when working with a [`Role`]'s colour,
-/// as the API works with an integer value instead of an RGB value.
+/// colour.
+///
+/// This is particularly useful when working with the `Role` struct in the
+/// serenity models, as the API works with an integer value instead of an RGB
+/// value.
 ///
 /// Instances can be created by using the struct's associated functions. These
 /// produce presets equivalent to those found in the official client's colour
@@ -24,35 +27,20 @@ macro_rules! colour {
 ///
 /// # Examples
 ///
-/// Passing in a role's colour, and then retrieving its green component
-/// via [`g`]:
+/// Create a colour, and then retriev its green component via [`g`]:
 ///
 /// ```rust
-/// # use serenity::model::{Role, RoleId, permissions};
-/// use serenity::utils::Colour;
-/// #
-/// # let role = Role {
-/// #     colour: Colour::blurple(),
-/// #     hoist: false,
-/// #     id: RoleId(1),
-/// #     managed: false,
-/// #     mentionable: false,
-/// #     name: "test".to_string(),
-/// #     permissions: permissions::PRESET_GENERAL,
-/// #     position: 7,
-/// # };
+/// use serenity_utils::Colour;
 ///
-/// // assuming a `role` has already been bound
-///
-/// let green = role.colour.g();
+/// let green = Colour::new(936547).g();
 ///
 /// println!("The green component is: {}", green);
 /// ```
 ///
-/// Creating an instance with the [`dark_teal`] presets:
+/// Creating an instance with the [`dark_teal`] preset:
 ///
 /// ```rust
-/// use serenity::utils::Colour;
+/// use serenity_utils::Colour;
 ///
 /// let colour = Colour::dark_teal();
 ///
@@ -62,7 +50,7 @@ macro_rules! colour {
 /// Colours can also be directly compared for equivalence:
 ///
 /// ```rust
-/// use serenity::utils::Colour;
+/// use serenity_utils::Colour;
 ///
 /// let blitz_blue = Colour::blitz_blue();
 /// let fooyoo = Colour::fooyoo();
@@ -72,10 +60,10 @@ macro_rules! colour {
 /// assert!(blitz_blue > fooyoo);
 /// ```
 ///
-/// [`Role`]: ../model/struct.Role.html
 /// [`dark_teal`]: #method.dark_teal
 /// [`g`]: #method.g
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Colour(pub u32);
 
 impl Colour {
@@ -87,7 +75,7 @@ impl Colour {
     /// to a specific RGB value, retrieved via [`tuple`]:
     ///
     /// ```rust
-    /// use serenity::utils::Colour;
+    /// use serenity_utils::Colour;
     ///
     /// let colour = Colour::new(6573123);
     ///
@@ -106,7 +94,7 @@ impl Colour {
     /// Creating a `Colour` via its RGB values will set its inner u32 correctly:
     ///
     /// ```rust
-    /// use serenity::utils::Colour;
+    /// use serenity_utils::Colour;
     ///
     /// assert!(Colour::from_rgb(255, 0, 0).0 == 0xFF0000);
     /// assert!(Colour::from_rgb(217, 23, 211).0 == 0xD917D3);
@@ -115,7 +103,7 @@ impl Colour {
     /// And you can then retrieve those same RGB values via its methods:
     ///
     /// ```rust
-    /// use serenity::utils::Colour;
+    /// use serenity_utils::Colour;
     ///
     /// let colour = Colour::from_rgb(217, 45, 215);
     ///
@@ -137,7 +125,7 @@ impl Colour {
     /// # Examples
     ///
     /// ```rust
-    /// use serenity::utils::Colour;
+    /// use serenity_utils::Colour;
     ///
     /// assert_eq!(Colour::new(6573123).r(), 100);
     /// ```
@@ -148,7 +136,7 @@ impl Colour {
     /// # Examples
     ///
     /// ```rust
-    /// use serenity::utils::Colour;
+    /// use serenity_utils::Colour;
     ///
     /// assert_eq!(Colour::new(6573123).g(), 76);
     /// ```
@@ -159,7 +147,7 @@ impl Colour {
     /// # Examples
     ///
     /// ```rust
-    /// use serenity::utils::Colour;
+    /// use serenity_utils::Colour;
     ///
     /// assert_eq!(Colour::new(6573123).b(), 67);
     pub fn b(&self) -> u8 { (self.0 & 255) as u8 }
@@ -172,7 +160,7 @@ impl Colour {
     /// # Examples
     ///
     /// ```rust
-    /// use serenity::utils::Colour;
+    /// use serenity_utils::Colour;
     ///
     /// assert_eq!(Colour::new(6573123).tuple(), (100, 76, 67));
     /// ```
@@ -193,7 +181,7 @@ impl From<i32> for Colour {
     /// # Examples
     ///
     /// ```rust
-    /// use serenity::utils::Colour;
+    /// use serenity_utils::Colour;
     ///
     /// assert_eq!(Colour::from(0xDEA584).tuple(), (222, 165, 132));
     /// ```
@@ -208,7 +196,7 @@ impl From<u32> for Colour {
     /// # Examples
     ///
     /// ```rust
-    /// use serenity::utils::Colour;
+    /// use serenity_utils::Colour;
     ///
     /// assert_eq!(Colour::from(6573123u32).r(), 100);
     /// ```
@@ -223,7 +211,7 @@ impl From<u64> for Colour {
     /// # Examples
     ///
     /// ```rust
-    /// use serenity::utils::Colour;
+    /// use serenity_utils::Colour;
     ///
     /// assert_eq!(Colour::from(6573123u64).r(), 100);
     /// ```
