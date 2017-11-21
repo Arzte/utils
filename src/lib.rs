@@ -269,7 +269,7 @@ pub fn parse_channel(mention: &str) -> Option<u64> {
 /// ```rust
 /// use serenity_utils::parse_emoji;
 ///
-/// let expected = Some(("smugAnimeFace".to_string(), 302516740095606785u64));
+/// let expected = Some(("smugAnimeFace", 302516740095606785u64));
 ///
 /// assert_eq!(parse_emoji("<:smugAnimeFace:302516740095606785>"), expected);
 /// ```
@@ -283,7 +283,7 @@ pub fn parse_channel(mention: &str) -> Option<u64> {
 /// ```
 ///
 /// [`Emoji`]: ../model/struct.Emoji.html
-pub fn parse_emoji(mention: &str) -> Option<(String, u64)> {
+pub fn parse_emoji(mention: &str) -> Option<(&str, u64)> {
     let len = mention.len();
 
     if len < 6 || len > 56 {
@@ -291,30 +291,14 @@ pub fn parse_emoji(mention: &str) -> Option<(String, u64)> {
     }
 
     if mention.starts_with("<:") && mention.ends_with('>') {
-        let mut name = String::default();
-        let mut id = String::default();
-
-        for (i, x) in mention[2..].chars().enumerate() {
-            if x == ':' {
-                let from = i + 3;
-
-                for y in mention[from..].chars() {
-                    if y == '>' {
-                        break;
-                    } else {
-                        id.push(y);
-                    }
-                }
-
-                break;
-            } else {
-                name.push(x);
-            }
-        }
+        let (name_to, id) = match mention[2..].find(':') {
+            Some(pos) => (pos + 2, &mention[pos + 3..len - 1]),
+            None => return None,
+        };
 
         match id.parse::<u64>() {
-            Ok(x) => Some((name, x)),
-            _ => None,
+            Ok(x) => Some((&mention[2..name_to], x)),
+            Err(_) => None,
         }
     } else {
         None
